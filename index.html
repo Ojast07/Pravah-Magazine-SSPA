@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Flipbook</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/page-flip/dist/css/page-flip.min.css">
+  <style>
+    body { margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f0f0; }
+    #flipbook { width:90%; height:90%; }
+  </style>
+</head>
+<body>
+  <div id="flipbook"></div>
+  <script>
+    async function loadPDF() {
+      const pdf = await pdfjsLib.getDocument("book.pdf").promise;
+      const flipbook = new St.PageFlip(document.getElementById("flipbook"), {
+        width: 600, height: 800, size: "stretch",
+        minWidth: 315, maxWidth: 1000,
+        minHeight: 420, maxHeight: 1350,
+        maxShadowOpacity: 0.5, showCover: true, mobileScrollSupport: true
+      });
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        flipbook.loadFromHTML([{ html: `<img src="${canvas.toDataURL()}">` }]);
+      }
+    }
+    loadPDF();
+  </script>
+</body>
+</html>
